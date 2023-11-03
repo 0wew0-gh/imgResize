@@ -30,9 +30,11 @@ func TestImgResize(t *testing.T) {
 		}
 	}
 
-	newImagePath, err := ImgResizes(imageList, newImgs, []string{"jpg", "webp"}, maxWHs, -1, true)
+	newImagePath, newsizes, newformats, err := ImgResizes(imageList, newImgs, []string{"jpg", "webp"}, maxWHs, -1, true)
 	if err != nil {
 		fmt.Println("ImgResizes failed:", err)
 	}
 	fmt.Println(newImagePath)
+	fmt.Println(newsizes)
+	fmt.Println(newformats)
 }

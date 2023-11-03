@@ -19,18 +19,22 @@ import (
 //	isPrint		bool		是否打印错误及提示信息
 //	返回值		[]string	新图片路径
 //	返回值		error		错误信息
-func ImgResizes(paths []string, newPaths []string, formats []string, maxWHs []ImageWH, quality int, isPrint bool) ([][]string, error) {
+func ImgResizes(paths []string, newPaths []string, formats []string, maxWHs []ImageWH, quality int, isPrint bool) ([][]string, [][]string, [][]string, error) {
 
 	newImagePath := [][]string{}
+	newsizes := [][]string{}
+	newformats := [][]string{}
 
 	for i := 0; i < len(paths); i++ {
-		newpaths, err := ImgResize(paths[i], newPaths[i], formats, maxWHs, quality, isPrint)
+		newpaths, sizes, formats, err := ImgResize(paths[i], newPaths[i], formats, maxWHs, quality, isPrint)
 		if err != nil {
-			return newImagePath, err
+			return newImagePath, newsizes, newformats, err
 		}
 		newImagePath = append(newImagePath, newpaths)
+		newsizes = append(newsizes, sizes)
+		newformats = append(newformats, formats)
 	}
-	return newImagePath, nil
+	return newImagePath, newsizes, newformats, nil
 }
 
 // ========================
@@ -44,20 +48,23 @@ func ImgResizes(paths []string, newPaths []string, formats []string, maxWHs []Im
 //	isPrint		bool		是否打印错误及提示信息
 //	返回值		[]string	新图片路径
 //	返回值		error		错误信息
-func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, quality int, isPrint bool) ([]string, error) {
+func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, quality int, isPrint bool) ([]string, []string, []string, error) {
 	newImagePath := []string{}
+	sizes := []string{}
+	newformats := []string{}
+
 	file, err := os.Open(path)
 	if err != nil {
 		// fmt.Println("os.Open failed:", err)
 		file.Close()
-		return newImagePath, err
+		return newImagePath, sizes, newformats, err
 	}
 	// 读取图像文件的配置信息
 	_, rformat, err := image.DecodeConfig(file)
 	if err != nil {
 		// fmt.Println("image.DecodeConfig failed:", err)
 		file.Close()
-		return newImagePath, err
+		return newImagePath, sizes, newformats, err
 	}
 	file.Close()
 	if rformat == "jpeg" {
@@ -69,13 +76,14 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 		if isPrint {
 			fmt.Println("imaging.Open failed:", err)
 		}
-		return newImagePath, err
+		return newImagePath, sizes, newformats, err
 	}
 
 	if isPrint {
 		fmt.Println("open image: ", path, " format is:", rformat)
 	}
 
+	exists := map[string]bool{}
 	sizeNamei := 0
 	for i := 0; i < len(maxWHs); i++ {
 		var (
@@ -106,7 +114,7 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 				if isPrint {
 					fmt.Println("DecodeImageWidthHeight failed:", err)
 				}
-				return newImagePath, err
+				return newImagePath, sizes, newformats, err
 			}
 			fmt.Println("Image size is:", imagewh.Width, "x", imagewh.Height)
 		}
@@ -115,6 +123,7 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 			imgSize = "R"
 			isResize = true
 			sizeNamei--
+			sizes = append(sizes, imgSize)
 		} else {
 			// 解析图片宽高后，进行图片缩放
 			imagewh, err = DecodeImageWidthHeight(newImage, format)
@@ -122,7 +131,7 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 				if isPrint {
 					fmt.Println("DecodeImageWidthHeight failed:", err)
 				}
-				return newImagePath, err
+				return newImagePath, sizes, newformats, err
 			}
 
 			if imagewh.Width >= imagewh.Height {
@@ -138,12 +147,13 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 			}
 
 			if isPrint && isResize {
+				sizes = append(sizes, imgSize)
 				imagewh, err = DecodeImageWidthHeight(newImage, format)
 				if err != nil {
 					if isPrint {
 						fmt.Println("DecodeImageWidthHeight failed:", err)
 					}
-					return newImagePath, err
+					return newImagePath, sizes, newformats, err
 				}
 				fmt.Println("Image resize is:", imagewh.Width, "x", imagewh.Height)
 			}
@@ -153,6 +163,7 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 			break
 		}
 		isRformat := false
+
 		// 保存图片
 		for i, v := range formats {
 			if rformat == v || ((rformat == "tiff" || rformat == "tif") && (v == "tiff" || v == "tif")) {
@@ -163,22 +174,29 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 				if isPrint {
 					fmt.Println("saveImage failed:", err)
 				}
-				return newImagePath, err
+				return newImagePath, sizes, newformats, err
 			}
 			newImagePath = append(newImagePath, path)
-			fmt.Println(">>>>>>>>>>>>>")
-			fmt.Println("i:", i, "v:", v, "rformat:", rformat, "isRformat:", isRformat)
+
+			if _, ok := exists[v]; !ok {
+				newformats = append(newformats, v)
+				exists[v] = true
+			}
 			if i+1 == len(formats) && !isRformat {
 				path, err = saveImage(newImage, newPath, imgSize, rformat, quality)
 				if err != nil {
 					if isPrint {
 						fmt.Println("saveImage failed:", err)
 					}
-					return newImagePath, err
+					return newImagePath, sizes, newformats, err
 				}
 				newImagePath = append(newImagePath, path)
+				if _, ok := exists[rformat]; !ok {
+					newformats = append(newformats, rformat)
+					exists[rformat] = true
+				}
 			}
 		}
 	}
-	return newImagePath, nil
+	return newImagePath, sizes, newformats, nil
 }
