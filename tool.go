@@ -22,7 +22,13 @@ type ImageWH struct {
 	Height int `json:"height"` //高
 }
 
-// 解析图片的宽高信息
+// ========================
+//
+//	使用`[]byte`解析图片的宽高信息
+//	imgBytes	[]byte		图片字节
+//	fileType	string		图片格式
+//	返回值		*ImageWH	图片宽高
+//	返回值		error		错误信息
 func DecodeBytesWidthHeight(imgBytes []byte, fileType string) (*ImageWH, error) {
 	var (
 		imgConf image.Config
@@ -53,7 +59,13 @@ func DecodeBytesWidthHeight(imgBytes []byte, fileType string) (*ImageWH, error) 
 	}, nil
 }
 
-// 解析图片的宽高信息
+// ========================
+//
+//	使用`image.Image`解析图片的宽高信息
+//	img			image.Image	图片
+//	fileType	string		图片格式
+//	返回值		*ImageWH	图片宽高
+//	返回值		error		错误信息
 func DecodeImageWidthHeight(img image.Image, fileType string) (*ImageWH, error) {
 	var (
 		imgBytes []byte
