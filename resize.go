@@ -3,6 +3,7 @@ package imgResize
 import (
 	"fmt"
 	"image"
+	"os"
 
 	"github.com/disintegration/imaging"
 )
@@ -44,25 +45,24 @@ func ImgResizes(paths []string, newPaths []string, formats []string, maxWHs []Im
 //	返回值		[]string	新图片路径
 //	返回值		error		错误信息
 func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, quality int, isPrint bool) ([]string, error) {
-
 	newImagePath := []string{}
-	// file, err := os.Open(path)
-	// if err != nil {
-	// 	// fmt.Println("os.Open failed:", err)
-	// 	file.Close()
-	// 	return newImagePath, err
-	// }
-	// // 读取图像文件的配置信息
-	// _, format, err := image.DecodeConfig(file)
-	// if err != nil {
-	// 	// fmt.Println("image.DecodeConfig failed:", err)
-	// 	file.Close()
-	// 	return newImagePath, err
-	// }
-	// file.Close()
-
-	// 打印图像的格式
-	// fmt.Println("Image format is:", format)
+	file, err := os.Open(path)
+	if err != nil {
+		// fmt.Println("os.Open failed:", err)
+		file.Close()
+		return newImagePath, err
+	}
+	// 读取图像文件的配置信息
+	_, rformat, err := image.DecodeConfig(file)
+	if err != nil {
+		// fmt.Println("image.DecodeConfig failed:", err)
+		file.Close()
+		return newImagePath, err
+	}
+	file.Close()
+	if rformat == "jpeg" {
+		rformat = "jpg"
+	}
 
 	tempImage, err := imaging.Open(path)
 	if err != nil {
@@ -73,7 +73,7 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 	}
 
 	if isPrint {
-		fmt.Println("open image: ", path)
+		fmt.Println("open image: ", path, " format is:", rformat)
 	}
 
 	sizeNamei := 0
@@ -152,8 +152,12 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 		if !isResize {
 			break
 		}
+		isRformat := false
 		// 保存图片
-		for _, v := range formats {
+		for i, v := range formats {
+			if rformat == v || ((rformat == "tiff" || rformat == "tif") && (v == "tiff" || v == "tif")) {
+				isRformat = true
+			}
 			path, err = saveImage(newImage, newPath, imgSize, v, quality)
 			if err != nil {
 				if isPrint {
@@ -162,6 +166,18 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 				return newImagePath, err
 			}
 			newImagePath = append(newImagePath, path)
+			fmt.Println(">>>>>>>>>>>>>")
+			fmt.Println("i:", i, "v:", v, "rformat:", rformat, "isRformat:", isRformat)
+			if i+1 == len(formats) && !isRformat {
+				path, err = saveImage(newImage, newPath, imgSize, rformat, quality)
+				if err != nil {
+					if isPrint {
+						fmt.Println("saveImage failed:", err)
+					}
+					return newImagePath, err
+				}
+				newImagePath = append(newImagePath, path)
+			}
 		}
 	}
 	return newImagePath, nil
