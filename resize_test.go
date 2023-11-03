@@ -2,19 +2,35 @@ package imgResize
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
 func TestImgResize(t *testing.T) {
-	imageList := []string{"image/01.png", "image/02.jpg", "image/03.png", "image/04.png"}
-	newImgs := []string{"new/001.png", "new/002.jpg", "new/003.png", "new/004.png"}
-	maxWHs := []ImageWH{
-		{Width: 200, Height: 200},
-		{Width: 500, Height: 500},
-		{Width: 1000, Height: 1000},
+	var (
+		imageList []string  = []string{"image/01.png", "image/02.jpg", "image/03.png", "image/04.png"}
+		newImgs   []string  = []string{"new/001.png", "new/002.jpg", "new/003.png", "new/004.png"}
+		maxWHs    []ImageWH = []ImageWH{
+			{Width: -1, Height: -1},
+			{Width: 200, Height: 200},
+			{Width: 500, Height: 500},
+			{Width: 1000, Height: 1000},
+		}
+		newPath string = "new"
+		err     error
+	)
+
+	os.MkdirAll("new", 0777)
+	// 保存文件到临时文件夹
+	if _, err = os.Stat(newPath); os.IsNotExist(err) {
+		err = os.MkdirAll(newPath, os.ModePerm)
+		if err != nil {
+			fmt.Println("os.MkdirAll:", err)
+			return
+		}
 	}
 
-	newImagePath, err := ImgResizes(imageList, newImgs, []string{"jpg", "png", "webp"}, maxWHs, -1)
+	newImagePath, err := ImgResizes(imageList, newImgs, []string{"jpg", "png", "webp"}, maxWHs, -1, true)
 	if err != nil {
 		fmt.Println("ImgResizes failed:", err)
 	}
