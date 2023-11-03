@@ -2,6 +2,7 @@ package imgResize
 
 import (
 	"fmt"
+	"image"
 
 	"github.com/disintegration/imaging"
 )
@@ -77,11 +78,14 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 
 	sizeNamei := 0
 	for i := 0; i < len(maxWHs); i++ {
-		newImage := tempImage
-		isResize := false
-		format := "jpg"
+		var (
+			newImage image.Image = tempImage
+			isResize bool        = false
+			format   string      = "jpg"
+			imgSize  string      = ""
+			imagewh  *ImageWH    = nil
+		)
 
-		imgSize := ""
 		switch sizeNamei {
 		case 0:
 			imgSize = "S"
@@ -95,6 +99,17 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 			}
 			imgSize += "L"
 		}
+		if isPrint && i == 0 {
+			// 解析图片宽高后，进行图片缩放
+			imagewh, err = DecodeImageWidthHeight(newImage, format)
+			if err != nil {
+				if isPrint {
+					fmt.Println("DecodeImageWidthHeight failed:", err)
+				}
+				return newImagePath, err
+			}
+			fmt.Println("Image size is:", imagewh.Width, "x", imagewh.Height)
+		}
 		if maxWHs[i].Width < 0 || maxWHs[i].Height < 0 {
 			// 不进行图片缩放
 			imgSize = "R"
@@ -102,22 +117,6 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 			sizeNamei--
 		} else {
 			// 解析图片宽高后，进行图片缩放
-			imagewh, err := DecodeImageWidthHeight(newImage, format)
-			if err != nil {
-				if isPrint {
-					fmt.Println("DecodeImageWidthHeight failed:", err)
-				}
-				return newImagePath, err
-			}
-			if isPrint {
-				fmt.Println("Image size is:", imagewh.Width, "x", imagewh.Height)
-			}
-
-			if imagewh.Width > maxWHs[i].Width {
-				isResize = true
-				newImage = imaging.Resize(newImage, maxWHs[i].Width, 0, imaging.Lanczos)
-			}
-
 			imagewh, err = DecodeImageWidthHeight(newImage, format)
 			if err != nil {
 				if isPrint {
@@ -126,10 +125,32 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 				return newImagePath, err
 			}
 
-			if imagewh.Height > maxWHs[i].Height {
-				isResize = true
-				newImage = imaging.Resize(newImage, 0, maxWHs[i].Height, imaging.Lanczos)
+			if imagewh.Width >= imagewh.Height {
+				if imagewh.Width > maxWHs[i].Width {
+					isResize = true
+					newImage = imaging.Resize(newImage, maxWHs[i].Width, 0, imaging.Lanczos)
+				}
+			} else {
+				if imagewh.Height > maxWHs[i].Height {
+					isResize = true
+					newImage = imaging.Resize(newImage, 0, maxWHs[i].Height, imaging.Lanczos)
+				}
 			}
+
+			if isPrint && isResize {
+				imagewh, err = DecodeImageWidthHeight(newImage, format)
+				if err != nil {
+					if isPrint {
+						fmt.Println("DecodeImageWidthHeight failed:", err)
+					}
+					return newImagePath, err
+				}
+				fmt.Println("Image resize is:", imagewh.Width, "x", imagewh.Height)
+			}
+		}
+		sizeNamei++
+		if !isResize {
+			break
 		}
 		// 保存图片
 		for _, v := range formats {
@@ -141,10 +162,6 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 				return newImagePath, err
 			}
 			newImagePath = append(newImagePath, path)
-		}
-		sizeNamei++
-		if !isResize {
-			break
 		}
 	}
 	return newImagePath, nil
