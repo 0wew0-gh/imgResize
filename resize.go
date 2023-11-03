@@ -176,6 +176,9 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 				}
 				return newImagePath, sizes, newformats, err
 			}
+			if isPrint {
+				fmt.Println("saveImage:", path)
+			}
 			newImagePath = append(newImagePath, path)
 
 			if _, ok := exists[v]; !ok {
@@ -189,6 +192,9 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 						fmt.Println("saveImage failed:", err)
 					}
 					return newImagePath, sizes, newformats, err
+				}
+				if isPrint {
+					fmt.Println("saveImage 2:", path)
 				}
 				newImagePath = append(newImagePath, path)
 				if _, ok := exists[rformat]; !ok {

@@ -100,6 +100,7 @@ func saveImage(img image.Image, path string, imgSize string, imgType string, opt
 
 	dst, err = os.Create(path)
 	if err != nil {
+		dst.Close()
 		return path, err
 	}
 
@@ -129,8 +130,10 @@ func saveImage(img image.Image, path string, imgSize string, imgType string, opt
 	case "bmp":
 		err = bmp.Encode(dst, img)
 	default:
+		dst.Close()
 		return path, errors.New("unknown file type")
 	}
+	dst.Close()
 	if err != nil {
 		return path, err
 	}
