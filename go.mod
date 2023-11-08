@@ -1,4 +1,4 @@
-module github.com/0wew0-gh/imgResize
+module github.com/0wew0-gh/mediaResize
 
 go 1.21.1
 

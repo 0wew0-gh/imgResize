@@ -1,4 +1,4 @@
-# imgResize
+# mediaResize
 图片缩放
 
 使用 https://github.com/disintegration/imaging 缩放图片，并保存

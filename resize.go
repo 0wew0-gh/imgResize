@@ -1,4 +1,4 @@
-package imgResize
+package mediaResize
 
 import (
 	"fmt"
@@ -14,12 +14,12 @@ import (
 //	paths		[]string	原图片路径
 //	newPaths	[]string	新图片路径
 //	formats		[]string	图片格式
-//	maxWHs		[]ImageWH	图片宽高
+//	maxWHs		[]MediaWH	图片宽高
 //	quality		int		图片质量
 //	isPrint		bool		是否打印错误及提示信息
 //	返回值		[]string	新图片路径
 //	返回值		error		错误信息
-func ImgResizes(paths []string, newPaths []string, formats []string, maxWHs []ImageWH, quality int, isPrint bool) ([][]string, [][]string, [][]string, error) {
+func ImgResizes(paths []string, newPaths []string, formats []string, maxWHs []MediaWH, quality int, isPrint bool) ([][]string, [][]string, [][]string, error) {
 
 	newImagePath := [][]string{}
 	newsizes := [][]string{}
@@ -43,12 +43,12 @@ func ImgResizes(paths []string, newPaths []string, formats []string, maxWHs []Im
 //	paths		string		原图片路径
 //	newPaths	string		新图片路径
 //	formats		[]string	图片格式
-//	maxWHs		[]ImageWH	图片宽高
+//	maxWHs		[]MediaWH	图片宽高
 //	quality		int		图片质量
 //	isPrint		bool		是否打印错误及提示信息
 //	返回值		[]string	新图片路径
 //	返回值		error		错误信息
-func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, quality int, isPrint bool) ([]string, []string, []string, error) {
+func ImgResize(path string, newPath string, formats []string, maxWHs []MediaWH, quality int, isPrint bool) ([]string, []string, []string, error) {
 	newImagePath := []string{}
 	sizes := []string{}
 	newformats := []string{}
@@ -91,7 +91,7 @@ func ImgResize(path string, newPath string, formats []string, maxWHs []ImageWH, 
 			isResize bool        = false
 			format   string      = "jpg"
 			imgSize  string      = ""
-			imagewh  *ImageWH    = nil
+			imagewh  *MediaWH    = nil
 		)
 
 		switch sizeNamei {
