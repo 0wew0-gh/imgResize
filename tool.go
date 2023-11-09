@@ -34,6 +34,13 @@ type ProbeData struct {
 	} `json:"streams"`
 }
 
+// ========================
+//
+//	缩放并压缩媒体文件
+//	path		string		媒体文件路径
+//	fileType	string		媒体文件类型
+//	返回值		*MediaWH	媒体文件宽高
+//	返回值		error		错误信息
 func DecodeFileWidthHeight(path string, fileType string) (*MediaWH, error) {
 	Mediatypes := strings.Split(strings.ToLower(fileType), "/")
 	fType := "image"
@@ -221,6 +228,12 @@ func saveImage(img image.Image, path string, imgSize string, imgType string, opt
 	return path, nil
 }
 
+// ========================
+//
+//	根据文件地址获取文件类型
+//	path		string		文件地址
+//	返回值		string		文件类型
+//	返回值		error		错误信息
 func DetectContentType(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -247,12 +260,11 @@ func DetectContentType(path string) (string, error) {
 //	path		string		原媒体文件路径
 //	newPath		string		新媒体文件路径
 //	contentType	string		媒体文件类型
-//	codeRate	int		视频码率
+//	codeRate	int		视频码率,-1为默认值:1500k
 //	width		int		缩放宽度
 //	height		int		缩放高度
 //	返回值		image.Image	新媒体文件
 //	返回值		error		错误信息
-
 func Resize(path string, newPath string, contentType string, codeRate int, width int, height int) (image.Image, error) {
 	Mediatypes := strings.Split(strings.ToLower(contentType), "/")
 	fType := "image"
@@ -274,6 +286,9 @@ func Resize(path string, newPath string, contentType string, codeRate int, width
 		scale := fmt.Sprintf("%dx%d", width, height)
 		cRate := fmt.Sprintf("%dk", codeRate)
 		cmd := exec.Command("ffmpeg", "-i", path, "-b:v", cRate, "-s", scale, "-acodec", "copy", newPath)
+		if codeRate < 0 {
+			cmd = exec.Command("ffmpeg", "-i", path, "-b:v", "1500k", "-s", scale, "-acodec", "copy", newPath)
+		}
 		if _, err := os.Stat(newPath); !os.IsNotExist(err) {
 			fmt.Println("file exist:", newPath, "break")
 
@@ -319,6 +334,15 @@ func Resize(path string, newPath string, contentType string, codeRate int, width
 	return nil, nil
 }
 
+// ========================
+//
+//	根据宽高比例缩放媒体文件
+//	mediaWidth	int		原媒体文件宽度
+//	mediaHeght	int		原媒体文件高度
+//	width		int		缩放宽度
+//	height		int		缩放高度
+//	返回值		int		新媒体文件宽度
+//	返回值		int		新媒体文件高度
 func calcResolutionRatio(mediaWidth int, mediaHeght int, width int, height int) (int, int) {
 	var (
 		newWidth  float64 = 0.0

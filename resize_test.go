@@ -8,7 +8,7 @@ import (
 
 func TestImgResize(t *testing.T) {
 	var (
-		imageList []string  = []string{"image/01.png", "image/02.jpg", "image/03.png", "image/04.png"}
+		imageList []string  = []string{"media/01.png", "media/02.jpg", "media/03.png", "media/04.png"}
 		newImgs   []string  = []string{"new/001.png", "new/002.jpg", "new/003.png", "new/004.png"}
 		maxWHs    []MediaWH = []MediaWH{
 			{Width: -1, Height: -1},
@@ -42,7 +42,7 @@ func TestImgResize(t *testing.T) {
 func TestVideoResize(t *testing.T) {
 
 	var (
-		imageList []string  = []string{"image/001.mp4"}
+		imageList []string  = []string{"media/001.mp4"}
 		newImgs   []string  = []string{"new/001.mp4"}
 		maxWHs    []MediaWH = []MediaWH{
 			{Width: -1, Height: -1},
