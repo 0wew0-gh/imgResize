@@ -64,7 +64,7 @@ func TestVideoResize(t *testing.T) {
 		}
 	}
 
-	newImagePath, newsizes, newformats, err := VideoResizes(imageList, newImgs, []string{"mkv"}, maxWHs, 1500, true)
+	newImagePath, newsizes, newformats, err := VideoResizes(imageList, newImgs, []string{"mkv"}, maxWHs, -1, true)
 	if err != nil {
 		fmt.Println("ImgResizes failed:", err)
 	}
