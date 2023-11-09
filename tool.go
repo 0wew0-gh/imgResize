@@ -290,7 +290,6 @@ func Resize(path string, newPath string, contentType string, codeRate int, width
 		}
 		if _, err := os.Stat(newPath); !os.IsNotExist(err) {
 			fmt.Println("file exist:", newPath, "break")
-
 			file, err := os.Open(newPath)
 			if err != nil {
 				file.Close()
@@ -309,7 +308,6 @@ func Resize(path string, newPath string, contentType string, codeRate int, width
 				if err != nil {
 					return nil, err
 				}
-				// cmd = exec.Command("ffmpeg", "-y", "-i", path,"-vf", "scale=-2:ih", "-b:v", cRate, "-s", scale, "-acodec", "copy", newPath)
 			}
 		}
 		fmt.Println("Resize scale:", scale)

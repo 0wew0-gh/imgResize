@@ -131,7 +131,7 @@ func VideoResize(path string, newPath string, formats []string, maxWHs []MediaWH
 
 		// isRformat := false
 
-		// 保存图片
+		// 处理视频并保存到指定地址
 		for _, v := range formats {
 			// if fExt == v {
 			// 	isRformat = true
@@ -151,7 +151,7 @@ func VideoResize(path string, newPath string, formats []string, maxWHs []MediaWH
 			}
 
 			if isPrint {
-				fmt.Println("saveImage:", path)
+				fmt.Println("save video:", path)
 			}
 			newImagePath = append(newImagePath, resizePath)
 
@@ -159,26 +159,6 @@ func VideoResize(path string, newPath string, formats []string, maxWHs []MediaWH
 				newformats = append(newformats, v)
 				exists[v] = true
 			}
-			// if i+1 == len(formats) && !isRformat {
-			// 	pathList[len(pathList)-1] = fExt
-			// 	resizePath = strings.Join(pathList, ".")
-			// 	resizePath = strings.Replace(resizePath, ".", "."+videoSize+".", -1)
-			// 	_, err = Resize(path, resizePath, contentType, codeRate, w, h)
-			// 	if err != nil {
-			// 		if isPrint {
-			// 			fmt.Println("Resize failed:", err)
-			// 		}
-			// 		return newImagePath, sizes, newformats, err
-			// 	}
-			// 	if isPrint {
-			// 		fmt.Println("saveImage 2:", path)
-			// 	}
-			// 	newImagePath = append(newImagePath, resizePath)
-			// 	if _, ok := exists[fExt]; !ok {
-			// 		newformats = append(newformats, fExt)
-			// 		exists[fExt] = true
-			// 	}
-			// }
 		}
 	}
 	return newImagePath, sizes, newformats, nil
