@@ -36,7 +36,7 @@ type ProbeData struct {
 
 // ========================
 //
-//	缩放并压缩媒体文件
+//	解析媒体文件的宽高信息
 //	path		string		媒体文件路径
 //	fileType	string		媒体文件类型
 //	返回值		*MediaWH	媒体文件宽高
@@ -78,7 +78,7 @@ func DecodeFileWidthHeight(path string, fileType string) (*MediaWH, error) {
 		if err != nil {
 			return nil, err
 		}
-		imgBytes, err := imageToBytes(img)
+		imgBytes, err := imageToBytes(img, extType)
 		if err != nil {
 			return nil, err
 		}
@@ -98,6 +98,11 @@ func DecodeFileWidthHeight(path string, fileType string) (*MediaWH, error) {
 			imgConf, err = bmp.DecodeConfig(bytes.NewReader(imgBytes))
 		default:
 			return nil, errors.New("unknown file type")
+		}
+		if err != nil {
+			if strings.Contains(err.Error(), "invalid format:") {
+				imgConf, err = jpeg.DecodeConfig(bytes.NewReader(imgBytes))
+			}
 		}
 		if err != nil {
 			return nil, err
@@ -159,16 +164,32 @@ func DecodeImageWidthHeight(img image.Image, fileType string) (*MediaWH, error) 
 		imgBytes []byte
 		err      error
 	)
-	imgBytes, err = imageToBytes(img)
+	imgBytes, err = imageToBytes(img, fileType)
 	if err != nil {
 		return nil, err
 	}
 	return DecodeBytesWidthHeight(imgBytes, fileType)
 }
 
-func imageToBytes(img image.Image) ([]byte, error) {
+func imageToBytes(img image.Image, extType string) ([]byte, error) {
 	buf := new(bytes.Buffer)
-	err := jpeg.Encode(buf, img, nil)
+	var err error
+	switch extType {
+	case "jpg", "jpeg":
+		err = jpeg.Encode(buf, img, nil)
+	case "webp":
+		err = webp.Encode(buf, img, nil)
+	case "png":
+		err = png.Encode(buf, img)
+	case "tif", "tiff":
+		err = tiff.Encode(buf, img, nil)
+	case "gif":
+		err = gif.Encode(buf, img, nil)
+	case "bmp":
+		err = bmp.Encode(buf, img)
+	default:
+		return nil, errors.New("unknown file type")
+	}
 	if err != nil {
 		return nil, err
 	}
